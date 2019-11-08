@@ -16,6 +16,7 @@
 
 package edu.unsj.idei.btlegatt;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
@@ -39,11 +40,15 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Objects;
 
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
 public class DeviceScanActivity extends ListActivity
 {
+    public static final String TAG = "BTLEGATT";
     private LeDeviceListAdapter mLeDeviceListAdapter;
     private BluetoothAdapter mBluetoothAdapter;
     private boolean mScanning;
@@ -66,6 +71,21 @@ public class DeviceScanActivity extends ListActivity
         {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
             finish();
+        }
+
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED)
+        {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION))
+            {
+                Toast.makeText(this, "The permission to get BLE location data is required", Toast.LENGTH_SHORT).show();
+            } else
+            {
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            }
+        } else
+        {
+            Toast.makeText(this, "Location permissions already granted", Toast.LENGTH_SHORT).show();
         }
 
         // Initializes a Bluetooth adapter.  For API level 18 and above, get a reference to
@@ -208,7 +228,7 @@ public class DeviceScanActivity extends ListActivity
         LeDeviceListAdapter()
         {
             super();
-            mLeDevices = new ArrayList<BluetoothDevice>();
+            mLeDevices = new ArrayList<>();
             mInflator = DeviceScanActivity.this.getLayoutInflater();
         }
 
@@ -257,8 +277,8 @@ public class DeviceScanActivity extends ListActivity
             {
                 view = mInflator.inflate(R.layout.listitem_device, null);
                 viewHolder = new ViewHolder();
-                viewHolder.deviceAddress = (TextView) view.findViewById(R.id.device_address);
-                viewHolder.deviceName = (TextView) view.findViewById(R.id.device_name);
+                viewHolder.deviceAddress = view.findViewById(R.id.device_address);
+                viewHolder.deviceName = view.findViewById(R.id.device_name);
                 view.setTag(viewHolder);
             } else
             {
